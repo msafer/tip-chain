@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSendTransaction } from 'wagmi';
 import { parseEther, parseUnits } from 'viem';
 import { Loader2, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ export function TipButton({ amount, token, recipient }: TipButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { address, isConnected, chain } = useAccount();
   const { writeContract, data: hash, error, isPending } = useWriteContract();
+  const { sendTransaction } = useSendTransaction();
   
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
@@ -37,7 +38,7 @@ export function TipButton({ amount, token, recipient }: TipButtonProps) {
 
       if (token === 'ETH') {
         // Send native ETH
-        await writeContract({
+        sendTransaction({
           to: recipient as `0x${string}`,
           value: parseEther(amount),
         });
@@ -51,7 +52,8 @@ export function TipButton({ amount, token, recipient }: TipButtonProps) {
         const decimals = getTokenDecimals(token);
         const tokenAmount = parseUnits(amount, decimals);
 
-        await writeContract({
+        // @ts-ignore - wagmi v2 type compatibility issue
+        writeContract({
           address: tokenContract.address as `0x${string}`,
           abi: [
             {
@@ -64,7 +66,7 @@ export function TipButton({ amount, token, recipient }: TipButtonProps) {
               ],
               outputs: [{ name: '', type: 'bool' }],
             },
-          ],
+          ] as const,
           functionName: 'transfer',
           args: [recipient as `0x${string}`, tokenAmount],
         });
