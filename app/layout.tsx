@@ -1,7 +1,12 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { Providers } from './providers';
+import dynamic from 'next/dynamic';
 import './globals.css';
+
+// Dynamic import for providers to prevent SSR issues
+const Providers = dynamic(() => import('./providers').then(mod => ({ default: mod.Providers })), {
+  ssr: false,
+});
 
 const inter = Inter({
   subsets: ['latin'],

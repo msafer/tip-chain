@@ -1,15 +1,25 @@
 'use client';
 
 import { useState } from 'react';
+import dynamicImport from 'next/dynamic';
 import { motion } from 'framer-motion';
 import { Coins, TrendingUp, Users, Zap } from 'lucide-react';
 import { AmountSelector } from '@/components/AmountSelector';
-import { TipButton } from '@/components/TipButton';
 import { TokenToggle } from '@/components/TokenToggle';
 import { ShareCard } from '@/components/ShareCard';
-import { WalletConnector } from '@/components/WalletConnector';
 import { LeaderboardTable } from '@/components/LeaderboardTable';
 import { ProfileStats } from '@/components/ProfileStats';
+
+// Dynamic imports to prevent SSR issues with wallet components
+const TipButton = dynamicImport(() => import('@/components/TipButton').then(mod => ({ default: mod.TipButton })), {
+  ssr: false,
+  loading: () => <div className="w-full h-12 bg-muted animate-pulse rounded-md" />
+});
+
+const WalletConnector = dynamicImport(() => import('@/components/WalletConnector').then(mod => ({ default: mod.WalletConnector })), {
+  ssr: false,
+  loading: () => <div className="w-full h-32 bg-muted animate-pulse rounded-md" />
+});
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -40,6 +50,9 @@ const stats = [
     icon: Zap,
   },
 ];
+
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
 
 export default function HomePage() {
   const [selectedAmount, setSelectedAmount] = useState('');
