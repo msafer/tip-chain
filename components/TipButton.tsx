@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'react-hot-toast';
 import { getTokenContract, getTokenDecimals } from '@/lib/contracts';
 import { validateAddress } from '@/lib/validation';
+import { useNeynarContext } from '@neynar/react';
 
 interface TipButtonProps {
   amount: string;
@@ -21,6 +22,7 @@ export function TipButton({ amount, token, recipient }: TipButtonProps) {
   const { address, isConnected, chain } = useAccount();
   const { writeContract, data: hash, error, isPending } = useWriteContract();
   const { sendTransaction } = useSendTransaction();
+  const neynarContext = useNeynarContext();
   
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
@@ -70,6 +72,24 @@ export function TipButton({ amount, token, recipient }: TipButtonProps) {
           functionName: 'transfer',
           args: [recipient as `0x${string}`, tokenAmount],
         });
+      }
+
+      // Track tip analytics with Neynar
+      if (neynarContext) {
+        try {
+          // Log tip event for analytics (basic tracking)
+          console.log('Tip Analytics:', {
+            amount,
+            token,
+            recipient,
+            sender: address,
+            chain: chain.name,
+            timestamp: new Date().toISOString()
+          });
+          // In a real app, you'd send this to Neynar analytics API
+        } catch (analyticsError) {
+          console.warn('Analytics tracking failed:', analyticsError);
+        }
       }
 
       toast.success('Transaction submitted!');
